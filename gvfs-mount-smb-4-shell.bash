@@ -3,11 +3,7 @@
 # scripts
 #
 # Date		Author			Revision
-<<<<<<< HEAD
 # 2013-01-05	barak.korren@gmail.com	Wrote initial version, tested on Ubuntu
-=======
-# 2013-01-05	barak.korren@gmail.com	Wrote initial version, tested on Ubunto
->>>>>>> 8f6113bc3228a37d2d75413583eb67d1ddb822c2
 # 					12.10
 #
 die() {
