@@ -1,0 +1,84 @@
+#!/bin/bash
+# This script accepts a hostname, a list of ports or port ranges and an 
+# optional command, it creates an SSH connection to the specified host and 
+# forwards the specified ports to the local machine, then it runs a shell or
+# the specified command if one was given, leaving the SSH tunnel open until
+# the command exits
+#
+# Known bugs and Limitations:
+# 1. We assume the SSH will "just work", no way of letting the user enter
+#    a password or a passprase, however, this should work fine in GUI 
+#    environments where gtk-askpass can be used (no tested)
+# 2. We do not detect the case where the SSH connection failed nor do we wait
+#    until the tunnel is properly setup before running the client process
+# 3. We do not detect the case where the background SSH connection terminates
+#    before the client process, the is a design question as to what should be 
+#    done in that case, reconnect? terminate client? ask user?
+# 4. If the given command's name is made entierly of digits, it will be
+#    mistaken for a port number, this is mitigated by the fact that the command
+#    is tested to be an executable file, hence it must be specified with 
+#    full-path
+# 5. Syslog seems to get filles with these messages, no idea why:
+#    sshd[####]: channel ###: open failed: connect failed: Connection refused
+#
+
+LHOST=127.0.0.1
+SSH=/usr/bin/ssh
+#SSHCMD=read
+
+usage() {
+	cat 1>&2 <<EOF
+Usage: 
+  $(basename "$0") HOST PORT[-PORT]... [COMMAND] [ARGS]...
+SSH to HOST forwarding given port ranges to localhost, then executes COMMAND
+with ARGS or \$SHELL if none was specified, the SSH connection is closed when
+the COMMAND or shell exits
+EOF
+	exit 1
+}
+
+COMMAND="$SHELL"
+
+[[ $# -lt 2 ]] && usage
+HOST="$1"
+shift
+
+while [[ $# -gt 0 ]]; do
+	PAIR=($(echo "$1" | \
+		sed -n 's/^\([0-9][0-9]*\)\(-\([0-9][0-9]*\)\)\?$/\1 \3/p' \
+	))
+	if [[ ${#PAIR[*]} -gt 1 ]]; then
+		PORTS[${#PORTS[*]}]=${PAIR[0]}
+		PORTS[${#PORTS[*]}]=${PAIR[1]}
+	elif [[ ${#PAIR[*]} -gt 0 ]]; then
+		PORTS[${#PORTS[*]}]=${PAIR[0]}
+		PORTS[${#PORTS[*]}]=${PAIR[0]}
+	else
+		break
+	fi
+	shift
+done 
+
+[[ ${#PORTS[*]} -lt 1 ]] && usage 
+
+if [[ $# -gt 0 ]]; then
+	COMMAND="$1"
+	shift
+fi
+[[ -x "$COMMAND" ]] || { 
+	echo Given command isn\'t executable 1>&2
+	usage
+}
+
+TUNNELS="$(
+	echo ${PORTS[@]} | \
+	xargs -n 2 seq | \
+	sort -nu | \
+	xargs -iP printf "-R P:$LHOST:P "
+)"
+
+#"$SSH" -qttt "$HOST" $TUNNELS "$SSHCMD" &
+"$SSH" -qNttt "$HOST" $TUNNELS &
+"$COMMAND" "$@"
+kill -SIGHUP $!
+

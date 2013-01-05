@@ -1,0 +1,25 @@
+#!/usr/bin/expect --
+
+set user "ifireball"
+set pwd "b00tPa$$"
+
+log_user 0
+
+proc usage {} {
+    global argv0
+    puts "Usage: $argv0 NICK TEXT..."
+    exit 1
+}
+
+if {$argc < 2} usage
+
+spawn ssh ifireball.dyndns.org telnet localhost 9999
+expect "nickname."
+send "$user\r"
+expect "password."
+send "$pwd\r"
+expect "joined the party line."
+send ".msg [join $argv]\r"
+expect "Msg*\n"
+puts "$expect_out(0,string)"
+send ".quit\r"

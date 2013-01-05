@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FreeFileSync XmlType="GUI">
+    <MainConfig>
+        <Comparison>
+            <Variant>ByTimeAndSize</Variant>
+            <HandleSymlinks>Ignore</HandleSymlinks>
+        </Comparison>
+        <SyncConfig>
+            <Variant>Update</Variant>
+            <CustomDirections>
+                <LeftOnly>right</LeftOnly>
+                <RightOnly>none</RightOnly>
+                <LeftNewer>right</LeftNewer>
+                <RightNewer>none</RightNewer>
+                <Different>right</Different>
+                <Conflict>none</Conflict>
+            </CustomDirections>
+            <DeletionPolicy>RecycleBin</DeletionPolicy>
+            <VersioningFolder Limit="-1"/>
+        </SyncConfig>
+        <GlobalFilter>
+            <Include>*</Include>
+            <Exclude>/.Trash-*/&#x0A;/.recycle/&#x0A;</Exclude>
+            <TimeSpan Type="Inactive">0</TimeSpan>
+            <SizeMin Unit="Inactive">0</SizeMin>
+            <SizeMax Unit="Inactive">0</SizeMax>
+        </GlobalFilter>
+        <FolderPairs>
+            <Pair>
+                <Left>/home/ifireball/Videos</Left>
+                <Right>/run/user/ifireball/gvfs/smb-share:server=factory11,share=ifireball-video</Right>
+            </Pair>
+        </FolderPairs>
+        <OnCompletion/>
+    </MainConfig>
+    <GuiConfig>
+        <ShowFiltered>true</ShowFiltered>
+        <HandleError>Popup</HandleError>
+        <SyncPreviewActive>true</SyncPreviewActive>
+    </GuiConfig>
+</FreeFileSync>

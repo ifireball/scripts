@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# video encoding bit rate
+V_BITRATE=10000
+
+while [ "$1" ]; do
+  if file "$1" | grep -q "Macromedia Flash Video"; then
+    mencoder "$1" \
+      -oac mp3lame -lameopts fast:preset=standard \
+      -ovc lavc -lavcopts \
+        vcodec=h263p:vbitrate=$V_BITRATE:autoaspect \
+      -o "`basename $1 .flv`.avi"
+#    mencoder "$1" \
+#      -oac mp3lame -lameopts fast:preset=standard \
+#      -ovc lavc -lavcopts \
+#        vcodec=h263p:vbitrate=$V_BITRATE:mbd=2:v4mv:vpass=2:autoaspect \
+#      -o "`basename $1 .flv`.avi"
+      #-ovc lavc -lavcopts vcodec=h263p:mbd=2:v4mv:autoaspect \
+      #-ovc lavc -lavcopts vcodec=mpeg4:mbd=2:v4mv:autoaspect \
+      #-ovc lavc -lavcopts \
+      #  vcodec=mpeg4:vbitrate=$V_BITRATE:mbd=2:v4mv:autoaspect \
+  else
+    echo "$1 is not Flash Video. Skipping"
+  fi
+  shift
+done
+
+
