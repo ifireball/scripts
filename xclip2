@@ -1,0 +1,18 @@
+#!/bin/bash
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+    cat <<EOF
+Usage: $(basename $0) HOST [DISPLAY]
+EOF
+    exit 1
+fi;
+
+HOST="$1"
+
+if [[ $# -gt 1 ]]; then
+    DISP="$2"
+else
+    DISP=:0.0
+fi
+
+#ssh -Xnf "$HOST" "xclip -o | xclip -display \"$DISP\" -silent" < /dev/null
+exec xclip -o | ssh -x "$HOST" xclip -display \"$DISP\" -silent
