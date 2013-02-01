@@ -1,0 +1,60 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:		vboxauto
+# Required-Start:	vboxweb-service
+# Required-Stop:	vboxweb-service
+# Default-Start:	2 3 4 5
+# Default-Stop:		
+# Short-Description:	Auto start VirtualBox VMs
+### END INIT INFO
+
+set -e
+
+VBOXMANAGE=/usr/bin/VBoxManage
+FIND=/usr/bin/find
+
+VMDIR=/export/vbox-vms
+
+test -x "$VBOXMANAGE" || exit 0
+#TODO: Test VMDIR
+
+export -n DISPLAY
+umask 022
+
+# TODO: Load list of VMs to start
+#if test -f /etc/default/ssh; then
+#    . /etc/default/ssh
+#fi
+
+. /lib/lsb/init-functions
+
+if [[ "$UID" -ne 0 ]]; then
+	echo 'This script must be run as root'
+	exit 1
+fi
+
+case "$1" in
+  start)
+	log_daemon_msg "Starting VirtualBox VMs"
+	sudo -u vbox $FIND "$VMDIR" -type f -name '*.vbox' -exec $VBOXMANAGE registervm '{}' ';'
+	sudo -u vbox $VBOXMANAGE startvm Mail --type headless
+	sudo -u vbox $VBOXMANAGE startvm Puppetmaster --type headless
+	log_end_msg 0
+	# TODO: on failure: log_end_msg 1
+	;;
+  stop)
+	#TODO
+	;;
+
+  status)
+	#TODO:
+	sudo -u vbox $VBOXMANAGE list runningvms
+	;;
+
+  *)
+	log_action_msg "Usage: $0 {start|stop|status}"
+	exit 1
+esac
+
+exit 0
