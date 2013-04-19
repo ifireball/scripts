@@ -13,8 +13,12 @@ set -e
 
 VBOXMANAGE=/usr/bin/VBoxManage
 FIND=/usr/bin/find
+SU=/bin/su
+PRINTF=/usr/bin/printf
 
+VBOXUSER=vbox
 VMDIR=/export/vbox-vms
+VMS_TO_START=(Mail Puppetmaster)
 
 test -x "$VBOXMANAGE" || exit 0
 #TODO: Test VMDIR
@@ -37,9 +41,14 @@ fi
 case "$1" in
   start)
 	log_daemon_msg "Starting VirtualBox VMs"
-	sudo -u vbox $FIND "$VMDIR" -type f -name '*.vbox' -exec $VBOXMANAGE registervm '{}' ';'
-	sudo -u vbox $VBOXMANAGE startvm Mail --type headless
-	sudo -u vbox $VBOXMANAGE startvm Puppetmaster --type headless
+	VMLIST="$($PRINTF " '%s'" "${VMS_TO_START[@]}")"
+	$SU "$VBOXUSER" -s /bin/bash <<EOF
+		$FIND "$VMDIR" -type f -name '*.vbox' \
+			-exec $VBOXMANAGE registervm '{}' ';' > /dev/null 2>&1
+		for VM in $VMLIST; do
+			$VBOXMANAGE startvm "\$VM" --type headless
+		done
+EOF
 	log_end_msg 0
 	# TODO: on failure: log_end_msg 1
 	;;
